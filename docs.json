@@ -22,7 +22,15 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "quickstart", "authentication"]
+            "pages": [
+              "index",
+              "quickstart",
+              "authentication",
+              "guides/concepts",
+              "guides/create-agent",
+              "guides/concurrent-agents",
+              "guides/operate-agents"
+            ]
           },
           {
             "group": "Concepts",

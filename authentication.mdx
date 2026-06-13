@@ -1,20 +1,30 @@
 ---
 title: "Authentication"
-description: "Runtime endpoints use an internal API key header."
+description: "Authenticate public Platform API calls and internal runtime calls."
 ---
 
-Runtime endpoints are called by the Web backend, not directly by end users.
-Both services must share the same `RUNTIME_INTERNAL_TOKEN`.
+Public Platform API calls use workspace API keys:
+
+```bash
+Authorization: Bearer sk-af-...
+Content-Type: application/json
+```
+
+Generate and revoke API keys from the Astraflow workspace settings page. A key
+is scoped to the workspace it was created in, so requests such as listing
+agents, starting sessions, and reading usage do not need a workspace id in the
+path.
+
+Runtime endpoints are internal service-to-service endpoints called by the Web
+backend. They use a separate shared runtime token:
 
 ```bash
 X-Runtime-Token: $RUNTIME_INTERNAL_TOKEN
 Content-Type: application/json
 ```
 
-The FastAPI OpenAPI schema exposes this header as an API key security scheme, so
-Mintlify and generated clients can display the required auth field.
-
 <Warning>
-  Do not expose `RUNTIME_INTERNAL_TOKEN` to browser clients. Public workspace
-  API keys use a separate `Authorization: Bearer sk-af-...` flow in the Web API.
+  Do not expose either token in frontend code. Platform API keys belong in your
+  server, worker, or CI environment. Runtime tokens should only be shared
+  between Astraflow services.
 </Warning>

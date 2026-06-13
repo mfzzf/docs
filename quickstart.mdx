@@ -1,48 +1,90 @@
 ---
 title: "Quickstart"
-description: "Run a managed-agent session and stream its events."
+description: "Create an agent, start a session, and stream its events."
 ---
 
-The normal product flow starts in the Web app: a workspace member creates an
-agent, selects an environment, and starts a session. The Web backend then calls
-the runtime with the internal token.
+This guide starts from the public Platform API. You will list available models,
+create an agent, start a session, and stream events until the run finishes.
+
+Set the API base and a workspace API key:
+
+```bash
+export ASTRAFLOW_API_KEY="sk-af-..."
+export ASTRAFLOW_BASE_URL="https://agents.plumzz.com/api"
+```
+
+<Warning>
+  Keep workspace API keys on the server side. Do not embed them in browser
+  clients or mobile apps.
+</Warning>
 
 <Steps>
-  <Step title="Create a session in the Web app">
-    Create the `sessions` row with an active `agent_id`, `agent_version_id`,
-    optional `environment_id`, and the user's first prompt in `input.prompt`.
-  </Step>
-
-  <Step title="Start the runtime turn">
-    The Web backend starts the first turn with:
+  <Step title="Choose a model">
+    Models are managed by ModelVerse and exposed through Astraflow as selectable
+    agent models.
 
     ```bash
-    curl -X POST "$RUNTIME_URL/internal/sessions/sess_xxx/runs" \
-      -H "X-Runtime-Token: $RUNTIME_INTERNAL_TOKEN" \
+    curl "$ASTRAFLOW_BASE_URL/v1/models?limit=20" \
+      -H "Authorization: Bearer $ASTRAFLOW_API_KEY"
+    ```
+  </Step>
+
+  <Step title="Create an agent">
+    An agent stores the instruction, model, tool policy, attached skills, MCP
+    server references, memory stores, and runtime defaults. The exact payload
+    can be expanded in the API Reference; this is the minimal shape for a first
+    agent.
+
+    ```bash
+    curl -X POST "$ASTRAFLOW_BASE_URL/v1/agents" \
+      -H "Authorization: Bearer $ASTRAFLOW_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"message":"List the workspace files and summarize them."}'
+      -d '{
+        "name": "Research assistant",
+        "description": "Reads files and summarizes findings.",
+        "instructions": "Be precise, cite file names, and ask before destructive changes.",
+        "model": "gpt-5.5"
+      }'
+    ```
+  </Step>
+
+  <Step title="Start a session">
+    Sessions are individual runs of an agent. Each session has its own prompt,
+    files, approval mode, event stream, and final status.
+
+    ```bash
+    curl -X POST "$ASTRAFLOW_BASE_URL/v1/sessions" \
+      -H "Authorization: Bearer $ASTRAFLOW_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "agent_id": "agt_...",
+        "message": "List the files in the workspace and summarize what this project does.",
+        "approval_mode": "auto_sandbox"
+      }'
     ```
   </Step>
 
   <Step title="Stream events">
-    Subscribe to server-sent events to update the UI as messages, tool calls,
-    approvals, and usage arrive.
+    Use server-sent events to render the session timeline. Events include user
+    messages, assistant messages, tool calls, approval requests, usage, and
+    terminal states.
 
     ```bash
-    curl -N "$RUNTIME_URL/internal/sessions/sess_xxx/events?after_seq=0" \
-      -H "X-Runtime-Token: $RUNTIME_INTERNAL_TOKEN"
-    ```
-  </Step>
-
-  <Step title="Resume after approval">
-    If a tool call requires human approval, submit the decision with the pending
-    `tool_call_id`.
-
-    ```bash
-    curl -X POST "$RUNTIME_URL/internal/sessions/sess_xxx/approvals" \
-      -H "X-Runtime-Token: $RUNTIME_INTERNAL_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d '{"tool_call_id":"tool_xxx","decision":"approve"}'
+    curl -N "$ASTRAFLOW_BASE_URL/v1/sessions/sess_.../stream" \
+      -H "Authorization: Bearer $ASTRAFLOW_API_KEY"
     ```
   </Step>
 </Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Understand the concepts" href="/guides/concepts">
+    Learn how agents, environments, skills, MCP servers, memory, credentials,
+    and sessions fit together.
+  </Card>
+  <Card title="Run agents concurrently" href="/guides/concurrent-agents">
+    Start many sessions at once while keeping rate limits, cancellation, and
+    retries under control.
+  </Card>
+</CardGroup>

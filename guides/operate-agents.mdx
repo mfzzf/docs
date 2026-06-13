@@ -1,0 +1,112 @@
+---
+title: "Operate agents"
+description: "Practical guidance for approvals, logs, usage, deployments, API keys, and workspace limits."
+---
+
+Production operation starts with a simple rule: make every run observable,
+bounded, and attributable. Sessions, request logs, usage events, deployments,
+API keys, and workspace limits are the operational surfaces you should review
+before an agent handles real work.
+
+## Approval mode
+
+`approval_mode` is stored on each session or deployment run. Choose the least
+permissive mode that still lets the workflow complete.
+
+- `default`: use this for most production agents. Operations that require human
+  confirmation pause the session in `waiting_approval`.
+- `strict`: use this for sensitive data, credentials, or destructive workflows.
+  Sandbox tool calls also require approval.
+- `auto_sandbox`: use this only when sandbox-local work is acceptable without a
+  human decision. It does not automatically approve external MCP tools or
+  credentialed services.
+
+For deployments, keep `approval_mode` in the deployment metadata so scheduled,
+webhook, and manual runs behave consistently. Review pending approvals from the
+session trace before approving, and reject tool calls that reference unexpected
+files, credentials, hosts, or write operations.
+
+## Request logs
+
+Request logs are backed by `llm_requests`. Use them as the audit trail for model
+traffic:
+
+- Filter by session, agent, provider, model, status, and time range.
+- Inspect request and response JSON when a run produced an unexpected answer.
+- Compare `latency_ms`, `finish_reason`, and error payloads during incidents.
+- Keep provider request IDs queryable so support can correlate issues with the
+  upstream model provider.
+
+Do not put secrets in prompts, tool arguments, or metadata. Request logs are
+designed for debugging and auditability, so assume authorized workspace members
+may inspect them.
+
+## Usage
+
+Usage is recorded separately from request logs so billing and analytics can be
+idempotent. Track these token kinds when investigating cost:
+
+- `input`
+- `output`
+- `reasoning`
+- `cached_input`
+- `cache_create_5m`
+- `cache_create_1h`
+
+The usage UI also includes sandbox time. Watch for sudden increases in
+reasoning tokens, cache creation, long-running sandbox sessions, and retries
+that duplicate expensive work. When a session fails, use its trace and request
+logs before starting a broad retry batch.
+
+## Deployments
+
+A deployment binds an agent version to an environment, credentials, memory
+stores, trigger configuration, and operational metadata. Treat deployment
+changes like production releases:
+
+- Pin the intended agent version before enabling schedules or webhooks.
+- Keep cron expressions in UTC and confirm the expected run minute.
+- Use the deployment run history to distinguish trigger failures from agent
+  execution failures.
+- For manual runs, remember that a `deployment_runs` row and a `sessions` row
+  are created together.
+- Cancel stale deployment runs instead of letting them hold approvals or
+  sandbox resources indefinitely.
+
+Scheduled runs are guarded against duplicate creation for the same deployment
+and schedule minute, but your downstream tools should still be safe to call more
+than once.
+
+## API keys
+
+Use workspace API keys for public API access and keep runtime internal tokens on
+the server side only.
+
+- Issue separate keys per integration, service, or environment.
+- Rotate keys on a regular cadence and immediately after staff or vendor
+  changes.
+- Store keys in a secret manager, never in browser code or checked-in files.
+- Remove unused keys instead of keeping them as dormant fallbacks.
+- Use request logs and session metadata to identify which key started a run.
+
+If an integration needs to stream events, proxy the request from your backend or
+use a server-side worker so the API key does not reach the browser.
+
+## Workspace limits
+
+Workspace limits protect the shared runtime and help keep cost predictable.
+Before increasing limits, check the failure mode:
+
+- High concurrent sessions may mean a batch worker needs a local concurrency
+  cap.
+- High token usage may mean prompts, memory retrieval, or retry policy need
+  tightening.
+- High sandbox time may mean tools are waiting on network calls, package
+  installation, or approval.
+- Frequent rate limits may mean the integration should back off and retry with
+  jitter.
+
+Set alerts around failed sessions, canceled runs, pending approvals, request
+error rates, and month-to-date usage. The best production posture is boring:
+small batches, clear ownership, readable traces, and no surprise credentials in
+the loop.

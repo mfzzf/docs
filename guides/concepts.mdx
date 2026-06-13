@@ -1,0 +1,146 @@
+---
+title: "Core concepts"
+description: "How workspaces, agents, environments, tools, memory, credentials, and sessions fit together."
+---
+
+Astraflow organizes managed agents around a few product objects. The simplest
+way to think about the platform is:
+
+- A **workspace** owns the people, agents, environments, credentials, and data
+  for a team.
+- An **agent** describes what the assistant should do.
+- A **session** is one run of an agent, with messages, tool calls, approvals,
+  trace events, and final output.
+
+The other objects shape what the agent can know and do while a session runs.
+
+## Workspace
+
+A workspace is the top-level boundary for product state. Agents, environments,
+credentials, memory stores, MCP server configurations, deployment runs, and
+sessions all belong to a workspace.
+
+Use workspaces to separate teams, customers, or operational domains. A workspace
+member should only see and operate the resources that belong to that workspace.
+
+## Agent
+
+An agent is the reusable definition of an assistant. It collects the model,
+instructions, skills, MCP servers, memory stores, and default runtime behavior
+that should be used when work starts.
+
+Agents are versioned. Editing an agent creates or updates the definition that
+future sessions use, while existing sessions continue to point at the version
+that created them. This makes runs easier to audit because the session can be
+understood against the exact configuration that executed it.
+
+## Model
+
+The model is the reasoning engine for an agent. The platform can route model
+requests through different provider SDKs or compatible APIs while keeping trace
+events, usage, and billing records normalized for the product UI.
+
+Choose the model based on the work the agent performs:
+
+- Use stronger models for long-running planning, code changes, and ambiguous
+  research tasks.
+- Use smaller or faster models for short classification, extraction, and
+  routing tasks.
+- Keep model choice with the agent version so session behavior remains
+  explainable later.
+
+## Environment
+
+An environment describes the execution context an agent can use. It can provide
+mounted files, package setup, network policy, credentials, and MCP servers.
+
+When a session needs sandbox-local tools, the runtime materializes the relevant
+environment into a sandbox. Session file resources are mounted under
+`/mnt/workspace/files`, and `/mnt/workspace/files/manifest.json` describes the
+mounted files so the agent can discover them consistently.
+
+<Note>
+  Approval behavior is run metadata. `auto_sandbox` should only be used for
+  sandbox-local tools; external MCP tools and credentialed services still need
+  the approval and authorization model appropriate for that service.
+</Note>
+
+## Skills
+
+Skills are packaged instructions and attachments that teach an agent a specific
+workflow. They are referenced from an agent version, resolved to a skill version,
+and injected into the agent's prompt at runtime.
+
+Use skills for repeatable operating knowledge, such as how to refine subtitles,
+generate a report, follow a team's release checklist, or work with a specific
+API. Skills should be narrow enough that the agent knows when to use them, but
+complete enough that the workflow can run without copy-pasting instructions into
+every prompt.
+
+## MCP servers
+
+MCP servers expose external tools to agents. They can be configured at the
+environment level or on an agent version. If both define the same server, the
+agent-version configuration should take precedence.
+
+MCP is best for services that live outside the sandbox, such as issue trackers,
+databases, cloud APIs, or internal business systems. Treat MCP tools as
+credentialed integrations: expose only the operations the agent needs and keep
+their results visible in the session trace.
+
+## Memory
+
+Memory stores let an agent retrieve durable knowledge that is larger than a
+single prompt. Documents are embedded into chunks, stored in workspace-owned
+memory tables, and searched at runtime when the agent needs relevant context.
+
+Memory is useful for policies, product documentation, customer notes, and other
+reference material that should survive across sessions. It should not replace
+session files when the task depends on a specific uploaded file or exact source
+artifact.
+
+## Credentials
+
+Credentials are secrets used by environments, MCP servers, deployments, or
+runtime integrations. They should be attached to the narrowest resource that
+needs them and never copied into agent instructions.
+
+During execution, credential values should stay out of user-facing copy,
+rendered YAML, and trace text. The trace should show which tool was called and
+what happened, not leak the underlying secret.
+
+## Sessions
+
+A session is the durable execution record for one agent run. It connects the
+workspace, agent version, environment, input prompt, mounted files, events,
+approvals, usage, and final result.
+
+Sessions are also the main object the UI rehydrates. The session event stream is
+the canonical timeline for assistant messages, tool calls, terminal output,
+approval waits, and completion. If events have expired or are incomplete, the UI
+can fall back to table timestamps and stored messages.
+
+## How they fit together
+
+<Steps>
+  <Step title="Design the agent">
+    Pick the model, write the instructions, attach skills, choose memory stores,
+    and configure any MCP servers the agent needs.
+  </Step>
+
+  <Step title="Choose the environment">
+    Select the files, credentials, package setup, and execution policy that the
+    agent should receive when it runs.
+  </Step>
+
+  <Step title="Start a session">
+    A user, deployment, or scheduled trigger creates a session against a specific
+    agent version and environment.
+  </Step>
+
+  <Step title="Run and observe">
+    The runtime executes turns, streams trace events, records model usage, waits
+    for approvals when needed, and finalizes the session.
+  </Step>
+</Steps>
+

@@ -1,0 +1,155 @@
+---
+title: "Create an agent"
+description: "Create an agent from the Web console or with the API without falling into API Reference details."
+---
+
+An agent is the reusable blueprint for work. Before creating one, decide what
+the agent is responsible for, which model should power it, which environment it
+can run in, and what extra capabilities it needs through skills, MCP servers,
+memory, and credentials.
+
+## Before you start
+
+Have these choices ready:
+
+- **Workspace**: the team or customer boundary that owns the agent.
+- **Instructions**: the job the agent should perform and the constraints it must
+  follow.
+- **Model**: the default model for sessions started from this agent.
+- **Environment**: the sandbox, file, package, credential, and tool context the
+  agent can use.
+- **Skills**: repeatable workflows the agent should know how to invoke.
+- **MCP servers**: external tools the agent can call.
+- **Memory stores**: durable reference knowledge the agent can search.
+
+You can start small. A useful first agent usually needs a name, instructions, a
+model, and one environment. Add skills, MCP servers, memory, and credentials
+only when the job requires them.
+
+## Create in the Web console
+
+The Web console is the best place to create and test an agent because it keeps
+the product objects visible while you iterate.
+
+<Steps>
+  <Step title="Open the workspace">
+    Choose the workspace that should own the agent. This determines which
+    environments, credentials, memory stores, and integrations are available.
+  </Step>
+
+  <Step title="Create the agent">
+    Give the agent a clear name and short description. The name should describe
+    the job, such as "Release note writer" or "Support triage assistant".
+  </Step>
+
+  <Step title="Write the instructions">
+    Describe the agent's role, expected output, tool-use boundaries, and what it
+    should ask before doing. Keep operational rules in the agent instructions
+    and reusable specialist procedures in skills.
+  </Step>
+
+  <Step title="Choose a model and environment">
+    Select the default model and the environment the agent should use for new
+    sessions. The environment controls files, sandbox setup, credentials, and
+    available MCP servers.
+  </Step>
+
+  <Step title="Attach capabilities">
+    Add skills for specialized workflows, memory stores for searchable
+    long-lived knowledge, and MCP servers for external systems. Attach only what
+    the agent needs for its job.
+  </Step>
+
+  <Step title="Run a test session">
+    Start a session from the agent, inspect the trace, confirm that tool calls
+    and approvals look right, then revise the agent version if the behavior is
+    not yet dependable.
+  </Step>
+</Steps>
+
+## Create with the API
+
+Use the API when agents need to be provisioned from your product, generated from
+templates, or kept in sync with another internal system. The API flow mirrors
+the Web console:
+
+1. Create or select the workspace resources the agent will reference.
+2. Create the agent with a name, description, and base instructions.
+3. Create or update an agent version with model, environment, skills, MCP
+   servers, memory stores, and runtime defaults.
+4. Start a session to validate the new configuration.
+
+The public Platform API infers the workspace from the API key. Create the agent
+from your server:
+
+```bash
+export ASTRAFLOW_BASE_URL="https://agents.plumzz.com/api"
+export ASTRAFLOW_API_KEY="sk-af-..."
+
+curl -X POST "$ASTRAFLOW_BASE_URL/v1/agents" \
+  -H "Authorization: Bearer $ASTRAFLOW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Release note writer",
+    "description": "Drafts customer-facing release notes from merged work.",
+    "instructions": "You write concise release notes. Ask for missing context before publishing. Use attached repository files and approved tools only.",
+    "model": "gpt-5.5",
+    "environment_id": "env_prod_docs"
+  }'
+```
+
+Then attach the versioned capabilities that should be used by new sessions:
+
+```bash
+curl -X POST "$ASTRAFLOW_BASE_URL/v1/agents/$AGENT_ID/versions" \
+  -H "Authorization: Bearer $ASTRAFLOW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.5",
+    "environment_id": "env_prod_docs",
+    "skill_ids": ["skill_release_notes"],
+    "mcp_server_ids": ["mcp_github"],
+    "memory_store_ids": ["mem_product_docs"],
+    "approval_mode": "default"
+  }'
+```
+
+Finally, create a session against the agent version to test the behavior:
+
+```bash
+curl -X POST "$ASTRAFLOW_BASE_URL/v1/sessions" \
+  -H "Authorization: Bearer $ASTRAFLOW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "'$AGENT_ID'",
+    "environment_id": "env_prod_docs",
+    "message": "Draft release notes for the latest merged pull requests.",
+    "approval_mode": "default"
+  }'
+```
+
+<Note>
+  These examples show the creation pattern, not the full API contract. Use the
+  API Reference for exact request schemas, response fields, pagination, and
+  error formats.
+</Note>
+
+## What to verify
+
+After the first test session, check:
+
+- The session uses the intended agent version, model, and environment.
+- Files appear under `/mnt/workspace/files` when the environment includes
+  session resources.
+- Skills are visible to the agent only when they are attached to the version.
+- MCP tool calls appear in the trace with understandable inputs and outputs.
+- Memory retrieval adds useful context without overwhelming the answer.
+- Credentials are available to tools that need them but never exposed in
+  assistant messages or rendered configuration.
+- Approval waits appear for sensitive operations and can be resumed from the UI.
+
+## Keep agents maintainable
+
+Prefer small, purpose-built agents over one general agent with every tool. Keep
+instructions stable, move repeatable procedures into skills, and test each new
+capability in a session before using the agent from a deployment or schedule.

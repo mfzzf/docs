@@ -1,0 +1,297 @@
+---
+title: "Concurrent agents"
+description: "Start multiple sessions, stream progress, isolate failures, and retry safely."
+---
+
+Concurrent work in Astraflow is session-based: each session owns its run state,
+event stream, approvals, cancellation, usage, and final status. To run agents in
+parallel, create multiple sessions and subscribe to each stream independently.
+
+## Start multiple sessions
+
+Use `POST /v1/sessions` once per unit of work. A common pattern is to fan out a
+batch of prompts for the same agent, cap the number of active requests, and keep
+the returned session IDs as the durable work queue.
+
+```ts
+const API_URL = process.env.ASTRAFLOW_API_URL!;
+const API_KEY = process.env.ASTRAFLOW_API_KEY!;
+
+type Session = {
+  id: string;
+  status: string;
+};
+
+async function createSession(input: {
+  agentId: string;
+  message: string;
+  title?: string;
+  approvalMode?: "default" | "strict" | "auto_sandbox";
+}) {
+  const response = await fetch(`${API_URL}/v1/sessions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      agent_id: input.agentId,
+      approval_mode: input.approvalMode ?? "default",
+      message: input.message,
+      title: input.title,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not create session: ${response.status}`);
+  }
+
+  return (await response.json()) as Session;
+}
+
+const prompts = [
+  "Audit the onboarding copy.",
+  "Find missing tests in the billing flow.",
+  "Summarize the latest failed deployment.",
+];
+
+const sessions = await Promise.all(
+  prompts.map((message, index) =>
+    createSession({
+      agentId: "agt_123",
+      message,
+      title: `Batch review ${index + 1}`,
+    }),
+  ),
+);
+
+console.log(sessions.map((session) => session.id));
+```
+
+## Limit concurrency
+
+Do not start unbounded batches from a worker or browser tab. Keep a small local
+pool, respect `429` responses, and make retries idempotent from your side by
+tracking the task ID that produced each session.
+
+```ts
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  worker: (item: T, index: number) => Promise<R>,
+) {
+  const results: R[] = [];
+  let next = 0;
+
+  async function run() {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await worker(items[index], index);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => run()),
+  );
+
+  return results;
+}
+
+const created = await mapWithConcurrency(prompts, 3, async (message, index) => {
+  return createSession({
+    agentId: "agt_123",
+    message,
+    title: `Limited batch ${index + 1}`,
+  });
+});
+```
+
+## Listen to SSE events
+
+For live progress, connect to `GET /v1/sessions/{session_id}/stream`. The stream
+is server-sent events. If the connection drops, reconnect and then use
+`GET /v1/sessions/{session_id}/events?after_seq=...` to replay any missed
+events.
+
+```ts
+type SessionEvent = {
+  event: string;
+  id: string;
+  data: unknown;
+};
+
+async function streamSession(
+  sessionId: string,
+  onEvent: (event: SessionEvent) => void,
+  signal?: AbortSignal,
+) {
+  let afterSeq = 0;
+
+  while (!signal?.aborted) {
+    const response = await fetch(`${API_URL}/v1/sessions/${sessionId}/stream`, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        Accept: "text/event-stream",
+      },
+      signal,
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`Stream failed for ${sessionId}: ${response.status}`);
+    }
+
+    const reader = response.body
+      .pipeThrough(new TextDecoderStream())
+      .getReader();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += value;
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() ?? "";
+
+        for (const frame of frames) {
+          const event = parseSseFrame(frame);
+          if (!event) continue;
+
+          afterSeq = Number(event.id || afterSeq);
+          onEvent(event);
+
+          if (
+            event.event === "session.status_completed" ||
+            event.event === "session.status_failed" ||
+            event.event === "session.status_canceled"
+          ) {
+            return;
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    await replayMissedEvents(sessionId, afterSeq, onEvent);
+  }
+}
+
+async function replayMissedEvents(
+  sessionId: string,
+  afterSeq: number,
+  onEvent: (event: SessionEvent) => void,
+) {
+  const response = await fetch(
+    `${API_URL}/v1/sessions/${sessionId}/events?after_seq=${afterSeq}`,
+    {
+      headers: { Authorization: `Bearer ${API_KEY}` },
+    },
+  );
+
+  if (!response.ok) return;
+
+  const body = (await response.json()) as {
+    data: Array<{ seq: number; event_type: string; id: string; payload: unknown }>;
+  };
+
+  for (const event of body.data) {
+    onEvent({
+      event: event.event_type,
+      id: String(event.seq),
+      data: event.payload,
+    });
+  }
+}
+
+function parseSseFrame(frame: string): SessionEvent | null {
+  const lines = frame.split("\n");
+  const id = lines.find((line) => line.startsWith("id:"))?.slice(3).trim();
+  const event = lines
+    .find((line) => line.startsWith("event:"))
+    ?.slice(6)
+    .trim();
+  const data = lines
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim())
+    .join("\n");
+
+  if (!event) return null;
+
+  return {
+    event,
+    id: id ?? "",
+    data: data ? JSON.parse(data) : null,
+  };
+}
+```
+
+## Isolate failures
+
+Treat every session as an independent job. One session can fail, wait for
+approval, or be canceled without blocking the others.
+
+```ts
+const controllers = new Map<string, AbortController>();
+
+const outcomes = await Promise.allSettled(
+  created.map(async (session) => {
+    const controller = new AbortController();
+    controllers.set(session.id, controller);
+
+    await streamSession(
+      session.id,
+      (event) => {
+        if (event.event === "session.status_failed") {
+          console.error("Session failed", session.id, event.data);
+        }
+      },
+      controller.signal,
+    );
+
+    return session.id;
+  }),
+);
+
+for (const outcome of outcomes) {
+  if (outcome.status === "rejected") {
+    console.error(outcome.reason);
+  }
+}
+```
+
+## Cancel and retry
+
+Cancel only the session that should stop. For a retry, create a new session with
+the same input and link it to your own task metadata; keep the old session for
+traceability.
+
+```ts
+async function cancelSession(sessionId: string) {
+  const response = await fetch(`${API_URL}/v1/sessions/${sessionId}/cancel`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not cancel ${sessionId}: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function retryTask(task: { id: string; agentId: string; message: string }) {
+  return createSession({
+    agentId: task.agentId,
+    message: task.message,
+    title: `Retry ${task.id}`,
+  });
+}
+```
+
+<Tip>
+  Use `GET /v1/sessions/{session_id}/events?after_seq=...` when you need a
+  finite replay for a completed session, and use the SSE stream when you need
+  live progress.
+</Tip>

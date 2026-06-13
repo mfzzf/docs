@@ -3,31 +3,32 @@ title: "Introduction"
 description: "Build and operate managed agents with Astraflow."
 ---
 
-Astraflow is a managed-agent platform for building agents, attaching skills and
-files, running sessions in sandboxed environments, and streaming execution
-events back to the product UI.
+Astraflow is a managed-agent platform for creating versioned agents, attaching
+skills, files, MCP servers, memory, and credentials, then running those agents
+as observable sessions in managed environments.
 
-This documentation is intentionally split into two layers:
+The documentation is split into two layers:
 
-- **Guides** explain how the platform pieces fit together.
-- **API Reference** is generated from the runtime OpenAPI schema.
+- **Guides** explain the product model and end-to-end workflows.
+- **API Reference** is generated from OpenAPI for exact request and response
+  shapes.
 
 <CardGroup cols={2}>
-  <Card title="Start a session" href="/quickstart">
-    Create a queued session and hand the first user message to the runtime.
+  <Card title="Quickstart" href="/quickstart">
+    Create an agent, start a session, and stream the result.
   </Card>
-  <Card title="Authenticate runtime calls" href="/authentication">
-    Use the internal `X-Runtime-Token` boundary between Web and Runtime.
+  <Card title="Core concepts" href="/guides/concepts">
+    Understand agents, versions, environments, sessions, tools, and memory.
   </Card>
-  <Card title="Understand sessions" href="/concepts/sessions">
-    Learn how turns, events, approvals, and cancellation work together.
+  <Card title="Run agents concurrently" href="/guides/concurrent-agents">
+    Launch multiple sessions safely with event streaming and failure isolation.
   </Card>
-  <Card title="Browse API reference" href="/api-reference/overview">
-    Open the generated reference powered by `openapi.json`.
+  <Card title="API Reference" href="/api-reference/overview">
+    Use the generated OpenAPI reference for endpoint-level details.
   </Card>
 </CardGroup>
 
 <Note>
-  The runtime API is an internal execution-plane API. Public workspace APIs can
-  be documented as a separate Mintlify tab when their OpenAPI schema exists.
+  Guides use the public Platform API at `https://agents.plumzz.com/api`. Runtime
+  internals are documented separately for service-to-service integrations.
 </Note>
