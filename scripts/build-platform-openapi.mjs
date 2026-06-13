@@ -103,7 +103,7 @@ const spec = {
   },
   servers: [
     {
-      url: "https://agents.plumzz.com",
+      url: "https://agents.plumzz.com/api",
       description: "Production API host.",
     },
   ],
