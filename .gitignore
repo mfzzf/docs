@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Mintlify / build outputs
+.mintlify/
+.next/
+out/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Python helpers
+__pycache__/
+*.py[cod]
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
