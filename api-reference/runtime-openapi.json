@@ -592,8 +592,8 @@
   ],
   "servers": [
     {
-      "url": "/",
-      "description": "Current runtime host."
+      "url": "https://agents.plumzz.com/runtime",
+      "description": "Public runtime gateway. Internal endpoints require X-Runtime-Token."
     }
   ]
 }

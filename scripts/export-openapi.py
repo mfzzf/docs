@@ -20,7 +20,16 @@ def main() -> None:
         "name": "Proprietary",
         "identifier": "LicenseRef-Proprietary",
     }
-    spec["servers"] = [{"url": "/", "description": "Current runtime host."}]
+    public_url = os.environ.get(
+        "RUNTIME_PUBLIC_URL",
+        "https://agents.plumzz.com/runtime",
+    ).rstrip("/")
+    spec["servers"] = [
+        {
+            "url": public_url,
+            "description": "Public runtime gateway. Internal endpoints require X-Runtime-Token.",
+        }
+    ]
 
     healthz = spec.get("paths", {}).get("/healthz", {}).get("get")
     if isinstance(healthz, dict):
