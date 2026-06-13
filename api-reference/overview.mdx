@@ -1,0 +1,27 @@
+---
+title: "API Reference"
+description: "Generated Runtime API reference from OpenAPI."
+---
+
+The Runtime API reference is generated from `api-reference/openapi.json`.
+
+<CardGroup cols={2}>
+  <Card title="Sessions" href="/api-reference/runtime">
+    Start runs, append messages, stream events, submit approvals, and cancel
+    sessions.
+  </Card>
+  <Card title="Environments" href="/api-reference/runtime">
+    Trigger sandbox template builds for cloud environments.
+  </Card>
+  <Card title="Embeddings" href="/api-reference/runtime">
+    Generate memory-store embeddings through the runtime.
+  </Card>
+  <Card title="Health" href="/api-reference/runtime">
+    Check whether the runtime process is alive.
+  </Card>
+</CardGroup>
+
+<Note>
+  Mintlify generates endpoint pages from the OpenAPI spec. If the runtime schema
+  changes, regenerate `api-reference/openapi.json` before publishing the docs.
+</Note>

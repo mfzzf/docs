@@ -1,0 +1,29 @@
+---
+title: "Sessions"
+description: "The runtime execution model for turns, events, approvals, and cancellation."
+---
+
+A session is the durable record of an agent run. Product state is stored in
+Supabase, while the runtime is responsible for executing turns and emitting
+trace events.
+
+## Lifecycle
+
+1. A session starts as `queued`.
+2. The runtime claims the run and moves it to `running`.
+3. Tool calls, assistant messages, and usage are appended as events.
+4. The session may enter `waiting_approval` when a tool needs human input.
+5. The session finishes as `completed`, `failed`, `canceled`, or `expired`.
+
+## Approval modes
+
+Session metadata can include `approval_mode`:
+
+- `default`: approve only operations that require human confirmation.
+- `strict`: require approval for sandbox tools too.
+- `auto_sandbox`: automatically approve sandbox-safe tool calls.
+
+## Event replay
+
+The events endpoint supports `after_seq` and `Last-Event-ID`, allowing the UI to
+reconnect without losing the event stream.

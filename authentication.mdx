@@ -1,0 +1,20 @@
+---
+title: "Authentication"
+description: "Runtime endpoints use an internal API key header."
+---
+
+Runtime endpoints are called by the Web backend, not directly by end users.
+Both services must share the same `RUNTIME_INTERNAL_TOKEN`.
+
+```bash
+X-Runtime-Token: $RUNTIME_INTERNAL_TOKEN
+Content-Type: application/json
+```
+
+The FastAPI OpenAPI schema exposes this header as an API key security scheme, so
+Mintlify and generated clients can display the required auth field.
+
+<Warning>
+  Do not expose `RUNTIME_INTERNAL_TOKEN` to browser clients. Public workspace
+  API keys use a separate `Authorization: Bearer sk-af-...` flow in the Web API.
+</Warning>

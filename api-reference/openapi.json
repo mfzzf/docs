@@ -1,72 +1,361 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Astraflow Runtime API",
+    "summary": "Internal execution-plane API for Astraflow managed agents.",
+    "description": "FastAPI automatically serves this OpenAPI schema at `/openapi.json`, Swagger UI at `/docs`, and ReDoc at `/redoc`. Runtime endpoints use the `X-Runtime-Token` header.",
+    "version": "0.1.0"
   },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
+    "/internal/sessions/{session_id}/runs": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Start a session run",
+        "description": "Start the first runtime turn for a session with a user message.",
+        "operationId": "start_run_internal_sessions__session_id__runs_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
         "parameters": [
           {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
+            "name": "session_id",
+            "in": "path",
+            "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "title": "Session Id"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartRunBody"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "Plant response",
+          "202": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Start Run Internal Sessions  Session Id  Runs Post"
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/internal/sessions/{session_id}/messages": {
       "post": {
-        "description": "Creates a new plant in the store",
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Append a user message",
+        "description": "Append a user message and start the next runtime turn.",
+        "operationId": "send_message_internal_sessions__session_id__messages_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
         "requestBody": {
-          "description": "Plant to add to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/SendMessageBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Send Message Internal Sessions  Session Id  Messages Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/sessions/{session_id}/approvals": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Resolve a tool approval",
+        "description": "Approve or reject a pending human-in-the-loop tool call.",
+        "operationId": "submit_approval_internal_sessions__session_id__approvals_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Submit Approval Internal Sessions  Session Id  Approvals Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/sessions/{session_id}/cancel": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Cancel a running session",
+        "description": "Request cancellation for the active runtime turn.",
+        "operationId": "cancel_internal_sessions__session_id__cancel_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Cancel Internal Sessions  Session Id  Cancel Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/sessions/{session_id}/events": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Stream session events",
+        "description": "Server-sent event stream for runtime status, messages, tool calls, and usage.",
+        "operationId": "events_internal_sessions__session_id__events_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "after_seq",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "After Seq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/environments/{environment_id}/build": {
+      "post": {
+        "tags": [
+          "Environments"
+        ],
+        "summary": "Build an environment template",
+        "description": "Build or mark ready the sandbox template backing an environment.",
+        "operationId": "build_template_internal_environments__environment_id__build_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "environment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Environment Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Build Template Internal Environments  Environment Id  Build Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/embeddings": {
+      "post": {
+        "tags": [
+          "Embeddings"
+        ],
+        "summary": "Create embeddings",
+        "description": "Generate ModelVerse embeddings for memory-store indexing and search.",
+        "operationId": "create_embeddings_internal_embeddings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmbeddingsBody"
               }
             }
           },
@@ -74,79 +363,57 @@
         },
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Embeddings Internal Embeddings Post"
                 }
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
               }
             }
           }
         },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Return a minimal status payload when the runtime process is alive.",
+        "operationId": "healthz_healthz_get",
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Healthz Healthz Get"
+                }
+              }
+            }
           }
         }
       }
@@ -154,64 +421,165 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
+      "ApprovalBody": {
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "tool_call_id": {
+            "type": "string",
+            "title": "Tool Call Id"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "decision": {
+            "type": "string",
+            "pattern": "^(approve|reject)$",
+            "title": "Decision"
           }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
+        },
+        "type": "object",
         "required": [
-          "error",
+          "tool_call_id",
+          "decision"
+        ],
+        "title": "ApprovalBody"
+      },
+      "EmbeddingsBody": {
+        "properties": {
+          "input": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 160,
+            "minItems": 1,
+            "title": "Input"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "dimensions": {
+            "type": "integer",
+            "maximum": 4096.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Dimensions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "input",
+          "model",
+          "dimensions"
+        ],
+        "title": "EmbeddingsBody"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "SendMessageBody": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "SendMessageBody"
+      },
+      "StartRunBody": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
           "message"
         ],
-        "type": "object",
+        "title": "StartRunBody"
+      },
+      "ValidationError": {
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
           },
-          "message": {
-            "type": "string"
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
-        }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Runtime-Token"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Sessions",
+      "description": "Runtime session execution, SSE event streaming, cancellation, and human-in-the-loop approvals."
+    },
+    {
+      "name": "Environments",
+      "description": "Sandbox environment template build operations."
+    },
+    {
+      "name": "Embeddings",
+      "description": "Internal embedding generation for memory stores."
+    },
+    {
+      "name": "Health",
+      "description": "Runtime process health checks."
+    }
+  ]
 }

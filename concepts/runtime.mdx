@@ -1,0 +1,30 @@
+---
+title: "Runtime"
+description: "How the execution-plane service runs agents and tools."
+---
+
+The runtime is a long-running Python service built on FastAPI. It bridges model
+SDKs, sandbox tools, event streaming, and usage accounting.
+
+## Model routing
+
+- `gpt-5.5` uses ModelVerse `/v1/responses`.
+- `deepseek-v4-pro` uses ModelVerse `/v1/chat/completions`.
+- `claude-sonnet-4-6` uses ModelVerse `/v1/messages`.
+
+## Sandboxes
+
+Sandbox instances are created lazily on the first tool call. Environments can
+provide package lists and network rules. Idle instances are reclaimed by the
+runtime reaper after completion or cancellation.
+
+## OpenAPI
+
+FastAPI serves the schema at:
+
+```bash
+$RUNTIME_URL/openapi.json
+```
+
+This repository also keeps a static copy at `apps/docs/api-reference/openapi.json`
+for Mintlify deployments.
