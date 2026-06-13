@@ -103,7 +103,7 @@ const spec = {
   },
   servers: [
     {
-      url: "https://api.astraflow.ai",
+      url: "http://agents.plumzz.com",
       description: "Production API host.",
     },
   ],
