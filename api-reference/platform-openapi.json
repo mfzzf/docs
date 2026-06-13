@@ -4718,8 +4718,34 @@
                       "items": {
                         "type": "object",
                         "properties": {
+                          "args": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "command": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "created_at": {
                             "type": "string"
+                          },
+                          "cwd": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "description": {
                             "anyOf": [
@@ -4730,6 +4756,13 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "env": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
                           },
                           "headers": {
                             "type": "object",
@@ -4759,7 +4792,8 @@
                             "type": "string",
                             "enum": [
                               "streamable_http",
-                              "sse"
+                              "sse",
+                              "stdio"
                             ]
                           },
                           "status": {
@@ -4769,12 +4803,23 @@
                             "type": "string"
                           },
                           "url": {
-                            "type": "string"
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
+                          "args",
+                          "command",
                           "created_at",
+                          "cwd",
                           "description",
+                          "env",
                           "headers",
                           "id",
                           "metadata",
@@ -8133,8 +8178,34 @@
                       "items": {
                         "type": "object",
                         "properties": {
+                          "args": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "command": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "created_at": {
                             "type": "string"
+                          },
+                          "cwd": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "description": {
                             "anyOf": [
@@ -8145,6 +8216,13 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "env": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
                           },
                           "headers": {
                             "type": "object",
@@ -8174,7 +8252,8 @@
                             "type": "string",
                             "enum": [
                               "streamable_http",
-                              "sse"
+                              "sse",
+                              "stdio"
                             ]
                           },
                           "status": {
@@ -8184,12 +8263,23 @@
                             "type": "string"
                           },
                           "url": {
-                            "type": "string"
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
+                          "args",
+                          "command",
                           "created_at",
+                          "cwd",
                           "description",
+                          "env",
                           "headers",
                           "id",
                           "metadata",
@@ -8274,6 +8364,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1024
+                    }
+                  },
+                  "command": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "cwd": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
                   "description": {
                     "type": "string",
                     "maxLength": 1000
@@ -8288,13 +8394,44 @@
                     "type": "string",
                     "enum": [
                       "streamable_http",
-                      "sse"
+                      "sse",
+                      "stdio"
                     ]
                   },
                   "url": {
                     "type": "string",
-                    "maxLength": 2048,
-                    "format": "uri"
+                    "maxLength": 2048
+                  },
+                  "env": {
+                    "default": {},
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 4096
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "$credential": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                            },
+                            "prefix": {
+                              "type": "string",
+                              "maxLength": 64
+                            }
+                          },
+                          "required": [
+                            "$credential"
+                          ]
+                        }
+                      ]
+                    }
                   },
                   "headers": {
                     "default": {},
@@ -8313,8 +8450,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "url"
+                  "name"
                 ]
               }
             }
@@ -8328,8 +8464,34 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "command": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "created_at": {
                       "type": "string"
+                    },
+                    "cwd": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "description": {
                       "anyOf": [
@@ -8340,6 +8502,13 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "env": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     },
                     "headers": {
                       "type": "object",
@@ -8369,7 +8538,8 @@
                       "type": "string",
                       "enum": [
                         "streamable_http",
-                        "sse"
+                        "sse",
+                        "stdio"
                       ]
                     },
                     "status": {
@@ -8379,12 +8549,23 @@
                       "type": "string"
                     },
                     "url": {
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
+                    "args",
+                    "command",
                     "created_at",
+                    "cwd",
                     "description",
+                    "env",
                     "headers",
                     "id",
                     "metadata",
@@ -8456,8 +8637,34 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "command": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "created_at": {
                       "type": "string"
+                    },
+                    "cwd": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "description": {
                       "anyOf": [
@@ -8468,6 +8675,13 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "env": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     },
                     "headers": {
                       "type": "object",
@@ -8497,7 +8711,8 @@
                       "type": "string",
                       "enum": [
                         "streamable_http",
-                        "sse"
+                        "sse",
+                        "stdio"
                       ]
                     },
                     "status": {
@@ -8507,12 +8722,23 @@
                       "type": "string"
                     },
                     "url": {
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
+                    "args",
+                    "command",
                     "created_at",
+                    "cwd",
                     "description",
+                    "env",
                     "headers",
                     "id",
                     "metadata",
@@ -8581,30 +8807,79 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "description": {
-                    "type": "string",
-                    "maxLength": 1000
+                  "args": {
+                    "maxItems": 64,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1024
+                    }
                   },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 120
-                  },
-                  "server_type": {
-                    "default": "streamable_http",
-                    "type": "string",
-                    "enum": [
-                      "streamable_http",
-                      "sse"
+                  "command": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 512
+                      },
+                      {
+                        "type": "null"
+                      }
                     ]
                   },
-                  "url": {
-                    "type": "string",
-                    "maxLength": 2048,
-                    "format": "uri"
+                  "cwd": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2048
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "env": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 4096
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "$credential": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                            },
+                            "prefix": {
+                              "type": "string",
+                              "maxLength": 64
+                            }
+                          },
+                          "required": [
+                            "$credential"
+                          ]
+                        }
+                      ]
+                    }
                   },
                   "headers": {
-                    "default": {},
                     "type": "object",
                     "propertyNames": {
                       "type": "string"
@@ -8617,6 +8892,31 @@
                       "type": "string"
                     },
                     "additionalProperties": {}
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "server_type": {
+                    "type": "string",
+                    "enum": [
+                      "streamable_http",
+                      "sse",
+                      "stdio"
+                    ]
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2048,
+                        "format": "uri"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 }
               }
@@ -8631,8 +8931,34 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "command": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "created_at": {
                       "type": "string"
+                    },
+                    "cwd": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "description": {
                       "anyOf": [
@@ -8643,6 +8969,13 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "env": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     },
                     "headers": {
                       "type": "object",
@@ -8672,7 +9005,8 @@
                       "type": "string",
                       "enum": [
                         "streamable_http",
-                        "sse"
+                        "sse",
+                        "stdio"
                       ]
                     },
                     "status": {
@@ -8682,12 +9016,23 @@
                       "type": "string"
                     },
                     "url": {
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
+                    "args",
+                    "command",
                     "created_at",
+                    "cwd",
                     "description",
+                    "env",
                     "headers",
                     "id",
                     "metadata",
