@@ -7,6 +7,10 @@
     "light": "#ffffff",
     "dark": "#09090b"
   },
+  "logo": {
+    "light": "/logo/astraflow-docs-light.svg",
+    "dark": "/logo/astraflow-docs-dark.svg"
+  },
   "favicon": "/favicon.svg",
   "contextual": {
     "options": ["copy", "download-spec"]
@@ -31,12 +35,23 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["api-reference/overview"]
+            "pages": [
+              "api-reference/overview",
+              "api-reference/platform",
+              "api-reference/runtime"
+            ]
+          },
+          {
+            "group": "Platform API",
+            "openapi": {
+              "source": "api-reference/platform-openapi.json",
+              "directory": "api-reference/platform"
+            }
           },
           {
             "group": "Runtime API",
             "openapi": {
-              "source": "api-reference/openapi.json",
+              "source": "api-reference/runtime-openapi.json",
               "directory": "api-reference/runtime"
             }
           }

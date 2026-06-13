@@ -1,0 +1,17 @@
+---
+title: "Runtime API"
+description: "Execution-plane API generated from the FastAPI runtime."
+---
+
+The Runtime API is generated directly from the FastAPI application. It is used by
+the web control plane to start runs, append messages, stream session events,
+submit approvals, cancel sessions, build environments, and request embeddings.
+
+<Warning>
+  Runtime endpoints are internal and authenticate with `X-Runtime-Token`. Use
+  the Platform API for external workspace integrations.
+</Warning>
+
+The generated endpoint pages are sourced from
+`api-reference/runtime-openapi.json`.
+

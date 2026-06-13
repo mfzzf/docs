@@ -1,8 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Astraflow">
-  <rect width="64" height="64" rx="14" fill="#111111" />
-  <path
-    d="M18 42 31.2 14h3.6L48 42h-6.2l-2.8-6.3H27l2.1-5h7.8L33 21.8 24.2 42H18Z"
-    fill="#ffffff"
-  />
-  <path d="M22 48h20" stroke="#ffffff" stroke-width="5" stroke-linecap="round" />
+  <defs>
+    <linearGradient id="mark" x1="8" x2="56" y1="8" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#17191F" />
+      <stop offset="1" stop-color="#050608" />
+    </linearGradient>
+    <linearGradient id="flow" x1="16" x2="50" y1="47" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF" />
+      <stop offset=".52" stop-color="#38BDF8" />
+      <stop offset="1" stop-color="#A3E635" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="17" fill="url(#mark)" />
+  <path d="M18 44 31.4 16.4h2.8L47.5 44h-6.6l-2.5-5.8H26.8l2.2-5h7.4l-3.8-8.8L23.8 44H18Z" fill="#F8FAFC" />
+  <path d="M16.5 47.2c9.1 8.2 23.7 8.2 32.8 0" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="4.3" />
+  <path d="M16.5 47.2c9.1 8.2 23.7 8.2 32.8 0" fill="none" stroke="url(#flow)" stroke-linecap="round" stroke-width="4.3" />
 </svg>

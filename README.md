@@ -13,8 +13,18 @@ mint dev
 
 ## OpenAPI
 
-The API reference reads `api-reference/openapi.json`. Regenerate it from the
-runtime source when endpoints or metadata change:
+The API reference reads two OpenAPI specs:
+
+- `api-reference/platform-openapi.json` is the public platform contract.
+- `api-reference/runtime-openapi.json` is generated from the FastAPI runtime.
+
+Regenerate the platform contract after product API changes:
+
+```bash
+node scripts/build-platform-openapi.mjs
+```
+
+Regenerate the runtime spec when runtime endpoints or metadata change:
 
 ```bash
 uv run --project ../../apps/runtime python scripts/export-openapi.py

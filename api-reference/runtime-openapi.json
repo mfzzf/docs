@@ -4,7 +4,11 @@
     "title": "Astraflow Runtime API",
     "summary": "Internal execution-plane API for Astraflow managed agents.",
     "description": "FastAPI automatically serves this OpenAPI schema at `/openapi.json`, Swagger UI at `/docs`, and ReDoc at `/redoc`. Runtime endpoints use the `X-Runtime-Token` header.",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "license": {
+      "name": "Proprietary",
+      "identifier": "LicenseRef-Proprietary"
+    }
   },
   "paths": {
     "/internal/sessions/{session_id}/runs": {
@@ -414,8 +418,12 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Runtime process is unavailable."
           }
-        }
+        },
+        "security": []
       }
     }
   },
@@ -580,6 +588,12 @@
     {
       "name": "Health",
       "description": "Runtime process health checks."
+    }
+  ],
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current runtime host."
     }
   ]
 }

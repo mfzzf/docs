@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 40" role="img" aria-labelledby="title desc">
+  <title id="title">Astraflow Docs</title>
+  <desc id="desc">Astraflow Docs wordmark with a subtle animated flow line.</desc>
+  <style>
+    .flow-core {
+      animation: flow-glide 4.8s ease-in-out infinite;
+      stroke-dasharray: 12 46;
+    }
+    .node {
+      animation: node-breathe 4.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+    @keyframes flow-glide {
+      0% { stroke-dashoffset: 56; opacity: .25; }
+      42% { opacity: .95; }
+      100% { stroke-dashoffset: -56; opacity: .25; }
+    }
+    @keyframes node-breathe {
+      0%, 100% { opacity: .58; transform: scale(.96); }
+      45% { opacity: 1; transform: scale(1.04); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flow-core, .node { animation: none; }
+    }
+  </style>
+  <defs>
+    <linearGradient id="mark-dark" x1="5" x2="35" y1="5" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC" />
+      <stop offset="1" stop-color="#CBD5E1" />
+    </linearGradient>
+    <linearGradient id="flow-dark" x1="9" x2="31" y1="29" y2="29" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5EEAD4" />
+      <stop offset=".52" stop-color="#7DD3FC" />
+      <stop offset="1" stop-color="#D9F99D" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="36" height="36" rx="11" fill="url(#mark-dark)" />
+  <path d="M11.2 27.6 19.8 10h1.8l8.5 17.6h-4.2l-1.6-3.7h-7.4l1.4-3.2H23l-2.4-5.5-5.6 12.4h-3.8Z" fill="#09090B" />
+  <path d="M10 29.2c5.9 5.4 15.3 5.4 21.2 0" fill="none" stroke="#64748B" stroke-linecap="round" stroke-width="2.2" />
+  <path class="flow-core" d="M10 29.2c5.9 5.4 15.3 5.4 21.2 0" fill="none" stroke="url(#flow-dark)" stroke-linecap="round" stroke-width="2.2" />
+  <circle class="node" cx="31.2" cy="29.2" r="2" fill="#5EEAD4" />
+  <text x="49" y="24.8" fill="#F8FAFC" font-family="Aptos, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="18" font-weight="690">Astraflow</text>
+  <path d="M139.5 10.5v19" stroke="#334155" stroke-linecap="round" />
+  <text x="151" y="24.8" fill="#94A3B8" font-family="Aptos, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="620">Docs</text>
+</svg>

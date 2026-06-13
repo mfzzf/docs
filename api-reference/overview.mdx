@@ -1,27 +1,38 @@
 ---
 title: "API Reference"
-description: "Generated Runtime API reference from OpenAPI."
+description: "Platform and Runtime API references generated from OpenAPI."
 ---
 
-The Runtime API reference is generated from `api-reference/openapi.json`.
+Astraflow publishes two OpenAPI specs:
+
+- `api-reference/platform-openapi.json` documents the public workspace API
+  contract used by product surfaces such as agents, environments, sessions,
+  files, skills, MCP servers, memory stores, credentials, deployments, API keys,
+  usage, request logs, and settings.
+- `api-reference/runtime-openapi.json` is generated directly from the FastAPI
+  runtime and covers internal runtime orchestration endpoints.
 
 <CardGroup cols={2}>
-  <Card title="Sessions" href="/api-reference/runtime">
-    Start runs, append messages, stream events, submit approvals, and cancel
-    sessions.
+  <Card title="Platform API" href="/api-reference/platform">
+    Manage agents, environments, sessions, files, skills, MCP servers, memory,
+    credentials, deployments, API keys, analytics, and workspace settings.
   </Card>
-  <Card title="Environments" href="/api-reference/runtime">
-    Trigger sandbox template builds for cloud environments.
+  <Card title="Runtime API" href="/api-reference/runtime">
+    Start runtime runs, append messages, stream events, submit approvals, cancel
+    sessions, build environments, and generate embeddings.
   </Card>
-  <Card title="Embeddings" href="/api-reference/runtime">
-    Generate memory-store embeddings through the runtime.
+  <Card title="Agents" href="/api-reference/platform">
+    Create versioned agents with ModelVerse model routing, runtime limits,
+    tools, skills, MCP server references, and metadata.
   </Card>
-  <Card title="Health" href="/api-reference/runtime">
-    Check whether the runtime process is alive.
+  <Card title="Sessions" href="/api-reference/platform">
+    Create sessions, attach files, stream timeline events, approve tool calls,
+    and cancel active runs.
   </Card>
 </CardGroup>
 
 <Note>
-  Mintlify generates endpoint pages from the OpenAPI spec. If the runtime schema
-  changes, regenerate `api-reference/openapi.json` before publishing the docs.
+  Mintlify generates endpoint pages from OpenAPI. Regenerate
+  `platform-openapi.json` after product contract changes and
+  `runtime-openapi.json` after runtime endpoint changes.
 </Note>
